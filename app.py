@@ -5,9 +5,7 @@ import plotly.express as px
 # 1. Konfigurasi Halaman Website
 st.set_page_config(page_title="Dashboard Penjualan Mobil", layout="wide")
 
-# ==========================================
-# TAMBAHAN CSS: CARD METRIK BIRU GELAP EFEK 3D & TEKS PUTIH
-# ==========================================
+# DESAIN
 st.markdown("""
 <style>
 /* Mengubah background kotak metrik menjadi biru gelap dengan efek 3D shadow */
@@ -30,7 +28,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-# ==========================================
 
 st.title("Dashboard Penjualan Mobil GAIKINDO (2018-2025)")
 st.markdown("Visualisasi interaktif ini menampilkan tren distribusi kendaraan roda empat di Indonesia.")
@@ -44,9 +41,8 @@ def load_data():
 
 df = load_data()
 
-# ==========================================
 # FITUR SEARCH BAR & TOMBOL HOME
-# ==========================================
+
 # Membuat state default untuk pencarian
 if 'search_brand' not in st.session_state:
     st.session_state.search_brand = "-- Tampilkan Semua (Home) --"
@@ -71,13 +67,9 @@ with col_btn:
 
 st.divider()
 
-# ==========================================
 # LOGIKA TAMPILAN DASHBOARD
-# ==========================================
 if st.session_state.search_brand == "-- Tampilkan Semua (Home) --":
-    # ---------------------------------------------------------
     # TAMPILAN DASHBOARD UTAMA (JIKA TIDAK ADA YANG DICARI)
-    # ---------------------------------------------------------
     
     st.markdown("### Ringkasan Penjualan (2018-2025)")
     metrik1, metrik2, metrik3, metrik4 = st.columns(4)
@@ -174,16 +166,12 @@ if st.session_state.search_brand == "-- Tampilkan Semua (Home) --":
         st.warning("Silakan pilih minimal satu merek mobil untuk melihat grafiknya.")
 
 else:
-    # ---------------------------------------------------------
     # TAMPILAN HALAMAN PENCARIAN (JIKA MEREK DIPILIH)
-    # ---------------------------------------------------------
     merek_dipilih = st.session_state.search_brand
     st.subheader(f"Statistik Penjualan: {merek_dipilih}")
-    
-    # Memfilter data hanya untuk merek yang dicari
     df_brand_detail = df[df['Brand'] == merek_dipilih].sort_values('Tahun')
-    
-    # 1. Menampilkan Line Chart Detail
+
+    # Menampilkan Line Chart Detail
     fig_detail = px.line(df_brand_detail, x='Tahun', y='Total Penjualan', markers=True, text='Total Penjualan')
     fig_detail.update_traces(textposition='top center', texttemplate='%{text:,.0f}', marker_color='#ff7f0e', line_color='#ff7f0e')
     fig_detail.update_layout(
@@ -191,27 +179,18 @@ else:
         xaxis_title="Tahun",
         dragmode=False
     )
+
     fig_detail.update_yaxes(range=[0, df_brand_detail['Total Penjualan'].max() * 1.3])
     st.plotly_chart(fig_detail, use_container_width=True, config={'displayModeBar': False})
-    
-    # 2. Menampilkan Tabel Data yang Sudah Dirapikan
+
+    # Menampilkan Tabel Data yang Sudah Dirapikan
     st.markdown("#### Tabel Data Penjualan")
     
     # Mengambil kolom yang dibutuhkan
     tabel_rapi = df_brand_detail[['Tahun', 'Brand', 'Total Penjualan']].copy()
-    
-    # Menghitung total penjualan keseluruhan untuk merek ini
     total_keseluruhan = tabel_rapi['Total Penjualan'].sum()
-    
-    # Membuat baris baru untuk total (Tahun dikosongkan, Brand diubah jadi "TOTAL PENJUALAN")
     baris_total = pd.DataFrame([{'Tahun': '', 'Brand': 'TOTAL PENJUALAN', 'Total Penjualan': total_keseluruhan}])
-    
-    # Menggabungkan data asli dengan baris total
     tabel_rapi = pd.concat([tabel_rapi, baris_total], ignore_index=True)
-    
-    # Mengubah index agar data dimulai dari angka 1, dan baris total kosong string ''
     indeks_baru = list(range(1, len(tabel_rapi))) + ['']
     tabel_rapi.index = indeks_baru
-    
-    # Menampilkan tabel
     st.dataframe(tabel_rapi, use_container_width=True)
